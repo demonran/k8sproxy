@@ -6,7 +6,7 @@ WORK_DIR="$(dirname $SCRIPT_DIR)"
 DIST_DIR=${WORK_DIR}/dist
 WIN_APP_PATH=${DIST_DIR}/k8sproxy.exe
 MAC_APP_PATH=${DIST_DIR}/k8sproxy
-MAIN_PATH=${WORK_DIR}/main.go
+MAIN_PATH=${WORK_DIR}/cmd/main.go
 
 
 

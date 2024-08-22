@@ -1,13 +1,13 @@
 package options
 
 type Option struct {
-	PodCidr     string
-	SvcCidr     string
-	SshAddr     string
-	SshUser     string
-	SshPassword string
-	ProxyPort   int
-	ProxyAddr   string
+	PodCidr   string
+	SvcCidr   string
+	SshHost   string
+	SshUser   string
+	SshPwd    string
+	ProxyPort int
+	ProxyAddr string
 }
 
 var opt *Option
@@ -34,18 +34,18 @@ func OptionFlags() []OptionConfig {
 			Description:  "Specify extra IP ranges which should be route to cluster, e.g. '172.2.0.0/16', use ',' separated",
 		},
 		{
-			Target:       "SshAddr",
-			DefaultValue: "172.30.3.56",
+			Target:       "SshHost",
+			DefaultValue: "",
 			Description:  "ssh address",
 		},
 		{
 			Target:       "SshUser",
-			DefaultValue: "user",
+			DefaultValue: "root",
 			Description:  "ssh user",
 		},
 		{
-			Target:       "SshPassword",
-			DefaultValue: "password",
+			Target:       "SshPwd",
+			DefaultValue: "",
 			Description:  "ssh password",
 		},
 		{

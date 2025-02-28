@@ -1,8 +1,8 @@
 package util
 
 import (
-	"github.com/rs/zerolog/log"
 	"golang.org/x/sys/windows"
+	"log"
 )
 
 func IsRunAsAdmin() bool {
@@ -15,7 +15,7 @@ func IsRunAsAdmin() bool {
 		0, 0, 0, 0, 0, 0,
 		&sid)
 	if err != nil {
-		log.Warn().Err(err).Msgf("Failed to get SID")
+		log.Printf("Failed to get SID")
 		return false
 	}
 	defer windows.FreeSid(sid)
@@ -23,7 +23,7 @@ func IsRunAsAdmin() bool {
 	token := windows.Token(0)
 	isAdminMember, err := token.IsMember(sid)
 	if err != nil {
-		log.Warn().Err(err).Msgf("Failed to get token membership")
+		log.Printf("Failed to get token membership")
 		return false
 	}
 

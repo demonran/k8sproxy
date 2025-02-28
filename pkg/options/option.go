@@ -1,63 +1,96 @@
 package options
 
-type Option struct {
-	PodCidr   string
-	SvcCidr   string
-	SshHost   string
-	SshUser   string
-	SshPwd    string
-	ProxyPort int
-	ProxyAddr string
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"k8sproxy/pkg/types"
+	"k8sproxy/pkg/util"
+	"log"
+	"net/http"
+	"os"
+)
+
+var opt *types.Option
+
+func Init() {
+	if opt == nil {
+		opt = fetchOptionsFromServer()
+	}
 }
 
-var opt *Option
-
-func GetOption() *Option {
-	if opt == nil {
-		opt = &Option{}
-	}
+func GetOption() *types.Option {
 	return opt
 }
 
-func OptionFlags() []OptionConfig {
-	flags := []OptionConfig{
+func fetchOptionsFromServer() *types.Option {
+	clientIP, err := util.GetClientIP()
+	if err != nil {
+		log.Printf("Failed to get client IP: %v", err)
+		clientIP = ""
+	}
+	clientUsername, err := util.GetSystemUsername()
+	if err != nil {
+		log.Printf("Failed to get system username: %v", err)
+		clientUsername = ""
+	}
+	clientSystem, err := os.Hostname()
+	if err != nil {
+		log.Printf("Failed to get system hostname: %v", err)
+		clientSystem = "" // 如果获取失败，回退到 GOOS
+	}
 
-		{
-			Target:       "PodCidr",
-			DefaultValue: "10.233.64.0/18",
-			Description:  "Disable access to pod IP address",
-		},
+	clientInfo := types.ClientInfo{
+		ClientIP:     clientIP,
+		ClientUser:   clientUsername,
+		ClientSystem: clientSystem,
+	}
 
-		{
-			Target:       "SvcCidr",
-			DefaultValue: "10.233.0.0/18",
-			Description:  "Specify extra IP ranges which should be route to cluster, e.g. '172.2.0.0/16', use ',' separated",
+	jsonData, err := json.Marshal(clientInfo)
+	if err != nil {
+		log.Printf("Failed to marshal client info: %v", err)
+		return defaultOptions()
+	}
+
+	resp, err := http.Post("http://172.30.3.50:8080/options", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Printf("Failed to fetch options from server: %v", err)
+		return defaultOptions()
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read response body: %v", err)
+		return defaultOptions()
+	}
+
+	var options types.Option
+	err = json.Unmarshal(body, &options)
+	if err != nil {
+		log.Printf("Failed to unmarshal JSON: %v", err)
+		return defaultOptions()
+	}
+
+	return &options
+}
+
+func defaultOptions() *types.Option {
+	return &types.Option{
+		Proxy: types.ProxyInfo{
+			SshHost: "172.30.3.56",
+			SshUser: "root",
+			SshPwd:  "",
 		},
-		{
-			Target:       "SshHost",
-			DefaultValue: "",
-			Description:  "ssh address",
-		},
-		{
-			Target:       "SshUser",
-			DefaultValue: "root",
-			Description:  "ssh user",
-		},
-		{
-			Target:       "SshPwd",
-			DefaultValue: "",
-			Description:  "ssh password",
-		},
-		{
-			Target:       "ProxyPort",
-			DefaultValue: 2223,
-			Description:  "(tun2socks mode only) Specify the local port which socks5 proxy should use",
-		},
-		{
-			Target:       "ProxyAddr",
-			DefaultValue: "127.0.0.1",
-			Description:  "(tun2socks mode only) Specify the ip address or hostname which socks5 proxy should use",
+		Routes: []string{
+			"10.233.64.0/18",
+			"10.233.0.0/18",
+			"10.11.0.0/16",
+			"10.10.0.0/16",
 		},
 	}
-	return flags
+}
+
+func OptionFlags() []OptionConfig {
+	return []OptionConfig{}
 }

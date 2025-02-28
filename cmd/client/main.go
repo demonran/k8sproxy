@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	log.Printf("start")
 	rootCmd := &cobra.Command{
 		Use:     "k8sproxy",
 		Version: "0.0.1",
@@ -15,7 +16,8 @@ func main() {
 			return conn.Connect()
 		},
 	}
-	options.SetOptions(rootCmd, rootCmd.Flags(), options.GetOption(), options.OptionFlags())
+
+	options.Init()
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatalf("Exit: %s", err)

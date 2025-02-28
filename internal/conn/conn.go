@@ -16,10 +16,16 @@ import (
 	"time"
 )
 
+const (
+	LocalHost  = "127.0.0.1"
+	Socks5Port = 2223
+)
+
 func Connect() error {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, os.Interrupt, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT)
-	socks5Address := fmt.Sprintf("%s:%d", options.GetOption().ProxyAddr, options.GetOption().ProxyPort)
+	opts := options.GetOption()
+	socks5Address := fmt.Sprintf("%s:%d", LocalHost, Socks5Port)
 	if err := startSocks5Connection(socks5Address); err != nil {
 		return err
 	}
@@ -29,10 +35,13 @@ func Connect() error {
 	}
 
 	if err := tun.Ins().ToSocks(socks5Address); err != nil {
-		log.Printf(err.Error())
+		log.Printf("Failed to set up SOCKS connection: %v", err)
 		return err
 	}
-	_ = route.SetRoute(tun.Ins(), []string{options.GetOption().PodCidr, options.GetOption().SvcCidr})
+	if err := route.SetRoute(tun.Ins(), opts.Routes); err != nil {
+		log.Printf("Failed to set route: %v", err)
+		return err
+	}
 	s := <-ch
 	log.Fatalf("signal is %s", s)
 	return nil
@@ -43,9 +52,10 @@ func startSocks5Connection(socks5Address string) error {
 	var res = make(chan error)
 	var ticker *time.Ticker
 	gone := false
-	sshHost := fmt.Sprintf("%s:%d", options.GetOption().SshHost, 22)
-	sshUser := options.GetOption().SshUser
-	sshPwd := options.GetOption().SshPwd
+	opt := options.GetOption()
+	sshHost := fmt.Sprintf("%s:%d", opt.Proxy.SshHost, 22)
+	sshUser := opt.Proxy.SshUser
+	sshPwd := opt.Proxy.SshPwd
 
 	go func() {
 		err := startSocksProxy(sshHost, sshUser, sshPwd, socks5Address)

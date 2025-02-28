@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/proxy"
 	"k8sproxy/internal/route"
 	"k8sproxy/pkg/options"
+	"k8sproxy/pkg/util"
 	"k8sproxy/tun"
 	"log"
 	"os"
@@ -22,6 +23,9 @@ const (
 )
 
 func Connect() error {
+	if err := checkPermission(); err != nil {
+		return err
+	}
 	ch := make(chan os.Signal)
 	signal.Notify(ch, os.Interrupt, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT)
 	opts := options.GetOption()
@@ -128,4 +132,16 @@ func setupSocks5HeartBeat(sshAddress, socks5Address string) *time.Ticker {
 		}
 	}()
 	return ticker
+}
+
+func checkPermission() error {
+	if !util.IsRunAsAdmin() {
+		if !util.IsRunAsAdmin() {
+			if util.IsWindows() {
+				return fmt.Errorf("permission declined, please re-run as Administrator")
+			}
+			return fmt.Errorf("permission declined, please re-run with 'sudo'")
+		}
+	}
+	return nil
 }

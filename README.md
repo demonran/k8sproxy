@@ -1,7 +1,7 @@
 # K8sProxy - Kubernetes本地开发网络穿透工具
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/yourname/k8sproxy)](https://goreportcard.com/report/github.com/yourname/k8sproxy)
-![Build Status](https://img.shields.io/github/actions/workflow/status/yourname/k8sproxy/build.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/demonran/k8sproxy)](https://goreportcard.com/report/github.com/demonran/k8sproxy)
+![Build Status](https://img.shields.io/github/actions/workflow/status/demonran/k8sproxy/build.yml)
 
 K8sProxy 是一个用于打通本地开发环境与 Kubernetes 集群网络的代理工具。通过创建虚拟网络接口和智能路由规则，实现本地IDEA启动的程序可以直接与Kubernetes集群中的微服务通讯，方便代码开发和调试。
 
@@ -77,6 +77,6 @@ sudo ./dist/k8sproxy # macOS/Linux
 
 ## 致谢
 
-- [wintun](https://www.wintun.net/) - Windows下的虚拟网络接口库
+- [wintun](https://github.com/WireGuard/wintun) - Windows下的虚拟网络接口库
 - [socks5](https://github.com/armon/go-socks5) - SOCKS5代理库
-- [sshproxy](https://github.com/tg123/sshproxy) - SSH代理库
+- [sshproxy](https://github.com/glycerine/sshproxy) - SSH代理库

@@ -11,7 +11,6 @@ import (
 	"k8sproxy/pkg/util"
 	"k8sproxy/tun"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -24,10 +23,7 @@ const (
 )
 
 func Connect() error {
-	defer func() {
-		log.Println("Start the logout process...")
-		Unregister()
-	}()
+	defer Unregister()
 	if err := checkPermission(); err != nil {
 		return err
 	}
@@ -52,8 +48,6 @@ func Connect() error {
 		return err
 	}
 	s := <-ch
-	//log.Fatalf("signal is %s", s)  // 立即终止程序 先打印日志，调用os.Exit(1),无法执行defer
-	//return nil
 	log.Printf("signal is %s", s)
 	return fmt.Errorf("program termination")
 }
@@ -154,16 +148,7 @@ func checkPermission() error {
 }
 
 func Unregister() {
-	serverURL := fmt.Sprintf("http://%s:%d/unregister", "172.30.3.50", 8080)
-	client := http.Client{Timeout: 3 * time.Second}
-	req, _ := http.NewRequest("DELETE", serverURL, nil)
-
-	if resp, err := client.Do(req); err != nil {
-		log.Printf("Logout request failed: %v", err)
-	} else {
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusNoContent {
-			log.Println("Client side logout successful")
-		}
+	if err := options.UnregisterClient(); err != nil {
+		log.Printf("An error occurred during the logout process: %v", err)
 	}
 }

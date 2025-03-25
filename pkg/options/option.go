@@ -9,6 +9,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+)
+
+const (
+	defaultBaseURL = "http://172.30.3.50:8080"
 )
 
 var opt *types.Option
@@ -52,7 +57,7 @@ func fetchOptionsFromServer() *types.Option {
 		return defaultOptions()
 	}
 
-	resp, err := http.Post("http://172.30.3.50:8080/options", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(defaultBaseURL+"/options", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Printf("Failed to fetch options from server: %v", err)
 		return defaultOptions()
@@ -93,4 +98,21 @@ func defaultOptions() *types.Option {
 
 func OptionFlags() []OptionConfig {
 	return []OptionConfig{}
+}
+
+func UnregisterClient() error {
+	log.Println("Start the logout process...")
+
+	client := http.Client{Timeout: 3 * time.Second}
+	req, _ := http.NewRequest("DELETE", defaultBaseURL+"/unregister", nil)
+
+	if resp, err := client.Do(req); err != nil {
+		log.Printf("Logout request failed: %v", err)
+	} else {
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusNoContent {
+			log.Println("Client side logout successful")
+		}
+	}
+	return nil
 }

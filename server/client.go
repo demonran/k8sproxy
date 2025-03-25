@@ -46,7 +46,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	clients[clientIP] = &clientInfo
 	mu.Unlock()
-
 	opt := *GetConfig()
 
 	w.Header().Set("Content-Type", "application/json")
@@ -55,4 +54,19 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Failed to encode JSON response: %v", err)
 		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
 	}
+}
+
+func Unregister(w http.ResponseWriter, r *http.Request) {
+	clientIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+	mu.Lock()
+	if _, exists := clients[clientIP]; exists {
+		delete(clients, clientIP)
+		log.Printf("client side%s logged out", clientIP)
+	} else {
+		log.Printf("Logout request failed: client side%s does not exist", clientIP)
+	}
+	mu.Unlock()
+
+	w.WriteHeader(http.StatusNoContent)
 }

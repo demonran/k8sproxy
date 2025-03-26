@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/spf13/cobra v1.6.1
-	github.com/spf13/pflag v1.0.5
 	github.com/wzshiming/socks5 v0.4.2
 	github.com/wzshiming/sshproxy v0.4.3
 	github.com/xjasonlyu/tun2socks/v2 v2.4.1
@@ -12,6 +11,7 @@ require (
 	golang.org/x/net v0.2.0
 	golang.org/x/sys v0.2.0
 	golang.zx2c4.com/wintun v0.0.0-20211104114900-415007cec224
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -25,6 +25,7 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/wzshiming/sshd v0.2.2 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect

@@ -1,72 +1,64 @@
 package options
 
 import (
-	"encoding/json"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
+	"fmt"
+	"gopkg.in/yaml.v3"
 	"k8sproxy/pkg/types"
-	"k8sproxy/pkg/util"
+	"log"
 	"os"
-	"reflect"
-	"unsafe"
+	"path/filepath"
 )
 
-var clientConfig *types.ClientConfig
+var clientCfg *types.ClientConfig
 
-type OptionConfig struct {
-	Target       string
-	DefaultValue any
-	Description  string
-}
-
-func SetOptions(cmd *cobra.Command, flags *flag.FlagSet, optionStore any, config []OptionConfig) {
-	cmd.Long = cmd.Short
-	cmd.Flags().SortFlags = false
-	cmd.InheritedFlags().SortFlags = false
-	flags.SortFlags = false
-	for _, c := range config {
-		name := util.UnCapitalize(c.Target)
-		field := reflect.ValueOf(optionStore).Elem().FieldByName(c.Target)
-		switch c.DefaultValue.(type) {
-		case string:
-			fieldPtr := (*string)(unsafe.Pointer(field.UnsafeAddr()))
-			defaultValue := c.DefaultValue.(string)
-			if field.String() != "" {
-				defaultValue = field.String()
-			}
-			flags.StringVar(fieldPtr, name, defaultValue, c.Description)
-
-		case int:
-			defaultValue := c.DefaultValue.(int)
-			if field.Int() != 0 {
-				defaultValue = int(field.Int())
-			}
-			fieldPtr := (*int)(unsafe.Pointer(field.UnsafeAddr()))
-			flags.IntVar(fieldPtr, name, defaultValue, c.Description)
-		case bool:
-			defaultValue := c.DefaultValue.(bool)
-			if field.Bool() {
-				defaultValue = field.Bool()
-			}
-			fieldPtr := (*bool)(unsafe.Pointer(field.UnsafeAddr()))
-
-			flags.BoolVar(fieldPtr, name, defaultValue, c.Description)
-
+func LoadClientConfig(path, baseURL string) error {
+	// 判断文件是否存在，如果不存在则创建
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		clientCfg = &types.ClientConfig{}
+	} else {
+		bytes, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		if err = yaml.Unmarshal(bytes, &clientCfg); err != nil {
+			return err
 		}
 	}
-}
 
-func LoadClientConfig(path string) error {
-	file, err := os.ReadFile(path)
-	if err != nil {
-		return err
+	if clientCfg.BaseURL == "" && baseURL == "" {
+		fmt.Println("请输入BaseURL地址:")
+		_, err := fmt.Scan(&baseURL)
+		if err != nil {
+			return fmt.Errorf("输入读取失败: %w", err)
+		}
 	}
-	return json.Unmarshal(file, &clientConfig)
+
+	if clientCfg.BaseURL != baseURL {
+		clientCfg.BaseURL = baseURL
+
+		// 配置信息保存到文件
+		configBytes, err := yaml.Marshal(&clientCfg)
+		if err != nil {
+			return err
+		}
+
+		// 1. 解析文件路径，获取目录部分
+		dir := filepath.Dir(path)
+
+		// 2. 创建所有缺失的目录（递归创建）
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Printf("创建目录失败: %v", err)
+			return err
+		}
+		return os.WriteFile(path, configBytes, 0644)
+	}
+
+	return nil
 }
 
 func getBaseURL() string {
-	if clientConfig != nil && clientConfig.BaseURL != "" {
-		return clientConfig.BaseURL
+	if clientCfg != nil && clientCfg.BaseURL != "" {
+		return clientCfg.BaseURL
 	}
 	return "http://127.0.0.1:8080"
 }

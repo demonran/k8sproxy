@@ -9,18 +9,29 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
 var opt *types.Option
 
-func Init() {
-	if err := LoadClientConfig("config_client.json"); err != nil {
-		log.Printf("Failure in loading client configuration: %v", err)
+func InitCfg(cfgFile, baseURL string) {
+	if cfgFile == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			log.Printf("Failed to get user home directory: %v", err)
+			return
+		}
+		cfgFile = filepath.Join(homeDir, ".k8sproxy/config")
+	}
+
+	if err := LoadClientConfig(cfgFile, baseURL); err != nil {
+		log.Fatalf("Failure in loading client configuration: %v", err)
 	}
 	if opt == nil {
 		opt = fetchOptionsFromServer()
 	}
+
 }
 
 func GetOption() *types.Option {
@@ -92,10 +103,6 @@ func defaultOptions() *types.Option {
 			"10.10.0.0/16",
 		},
 	}
-}
-
-func OptionFlags() []OptionConfig {
-	return []OptionConfig{}
 }
 
 func UnregisterClient() error {

@@ -21,5 +21,5 @@ type ClientInfo struct {
 }
 
 type ClientConfig struct {
-	BaseURL string `json:"baseUrl"`
+	BaseURL string `yaml:"baseURL"`
 }

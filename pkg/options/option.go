@@ -12,13 +12,12 @@ import (
 	"time"
 )
 
-const (
-	defaultBaseURL = "http://172.30.3.50:8080"
-)
-
 var opt *types.Option
 
 func Init() {
+	if err := LoadClientConfig("config_client.json"); err != nil {
+		log.Printf("Failure in loading client configuration: %v", err)
+	}
 	if opt == nil {
 		opt = fetchOptionsFromServer()
 	}
@@ -57,13 +56,13 @@ func fetchOptionsFromServer() *types.Option {
 		return defaultOptions()
 	}
 
-	resp, err := http.Post(defaultBaseURL+"/options", "application/json", bytes.NewBuffer(jsonData))
+	baseURL := getBaseURL()
+	resp, err := http.Post(baseURL+"/options", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Printf("Failed to fetch options from server: %v", err)
 		return defaultOptions()
 	}
 	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Failed to read response body: %v", err)
@@ -76,7 +75,6 @@ func fetchOptionsFromServer() *types.Option {
 		log.Printf("Failed to unmarshal JSON: %v", err)
 		return defaultOptions()
 	}
-
 	return &options
 }
 
@@ -103,8 +101,9 @@ func OptionFlags() []OptionConfig {
 func UnregisterClient() error {
 	log.Println("Start the logout process...")
 
+	baseURL := getBaseURL()
 	client := http.Client{Timeout: 3 * time.Second}
-	req, _ := http.NewRequest("DELETE", defaultBaseURL+"/unregister", nil)
+	req, _ := http.NewRequest("DELETE", baseURL+"/unregister", nil)
 
 	if resp, err := client.Do(req); err != nil {
 		log.Printf("Logout request failed: %v", err)

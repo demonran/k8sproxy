@@ -19,3 +19,7 @@ type ClientInfo struct {
 	ClientUser   string `json:"clientUser"`
 	ClientSystem string `json:"clientSystem"`
 }
+
+type ClientConfig struct {
+	BaseURL string `json:"baseUrl"`
+}

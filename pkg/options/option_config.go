@@ -1,12 +1,17 @@
 package options
 
 import (
+	"encoding/json"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"k8sproxy/pkg/types"
 	"k8sproxy/pkg/util"
+	"os"
 	"reflect"
 	"unsafe"
 )
+
+var clientConfig *types.ClientConfig
 
 type OptionConfig struct {
 	Target       string
@@ -49,4 +54,19 @@ func SetOptions(cmd *cobra.Command, flags *flag.FlagSet, optionStore any, config
 
 		}
 	}
+}
+
+func LoadClientConfig(path string) error {
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(file, &clientConfig)
+}
+
+func getBaseURL() string {
+	if clientConfig != nil && clientConfig.BaseURL != "" {
+		return clientConfig.BaseURL
+	}
+	return "http://127.0.0.1:8080"
 }

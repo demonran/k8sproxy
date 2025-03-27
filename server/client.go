@@ -19,13 +19,27 @@ func init() {
 }
 
 func GetClients(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	response := make([]types.ClientInfo, 0, len(clients))
+	for _, info := range clients {
+		if info != nil {
+			response = append(response, *info)
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(clients)
-	if err != nil {
-		log.Printf("Failed to encode JSON response: %v", err)
-		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("JSON encoding failure: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": "System error",
+		})
+		return
 	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {

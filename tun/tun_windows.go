@@ -58,7 +58,7 @@ func (c *Cli) SetRoute(ipRange []string) error {
 			lastErr = err
 		}
 		if lastErr != nil {
-			log.Printf("Failed to add ip addr %s to tun device", tunIp)
+			log.Printf("Failed to add ip addr %s to tun device, %v", tunIp, lastErr)
 			continue
 		}
 		_, _, err = util.RunAndWait(exec.Command("netsh",
@@ -72,7 +72,7 @@ func (c *Cli) SetRoute(ipRange []string) error {
 		))
 		lastErr = err
 		if lastErr != nil {
-			log.Printf("Failed to set route %s to tun device", cidr)
+			log.Printf("Failed to set route %s to tun device, %v", cidr, lastErr)
 		}
 	}
 

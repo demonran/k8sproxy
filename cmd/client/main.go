@@ -17,7 +17,7 @@ func main() {
 	}
 	var cfgFile string
 	var baseURL string
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.k8sproxy/config.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "config.yaml", "config file (default is $HOME/.k8sproxy/config)")
 	rootCmd.PersistentFlags().StringVarP(&baseURL, "url", "u", "", "base url to get connection info")
 
 	options.InitCfg(cfgFile, baseURL)

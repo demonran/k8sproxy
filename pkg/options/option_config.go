@@ -26,7 +26,7 @@ func LoadClientConfig(path, baseURL string) error {
 	}
 
 	if clientCfg.BaseURL == "" && baseURL == "" {
-		fmt.Println("请输入BaseURL地址:")
+		fmt.Print("请输入baseURL地址: ")
 		_, err := fmt.Scan(&baseURL)
 		if err != nil {
 			return fmt.Errorf("输入读取失败: %w", err)
